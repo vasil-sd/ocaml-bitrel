@@ -1,0 +1,32 @@
+opam-version: "1.2"
+name: "bitrel"
+maintainer: "Vasil Diadov <vasil.s.d@gmail.com>"
+authors: ["Vasil Diadov <vasil.s.d@gmail.com>"]
+homepage: "https://github.com/vasil-sd/ocaml-bitrel"
+doc: "https://vasil-sd.github.io/ocaml-bitrel/doc"
+license: "ISC"
+dev-repo: "https://github.com/vasil-sd/ocaml-bitrel.git"
+bug-reports: "https://github.com/vasil-sd/ocaml-bitrel/issues"
+tags: []
+available: [ ocaml-version >= "4.01.0"]
+depends:
+[
+  "ocamlfind" {build}
+  "ocamlbuild" {build}
+  "topkg" {build & >= "0.9.0"}
+  "bits"
+  "core" {test}
+  "core_bench" {test}
+  "qcheck" {test}
+  "bitrel" {test}
+]
+depopts: []
+build:
+[[
+  "ocaml" "pkg/pkg.ml" "build"
+]]
+build-test:
+[[
+  "ocaml" "pkg/pkg.ml" "build" "--tests" "true"
+  "ocaml" "pkg/pkg.ml" "test"
+]]
