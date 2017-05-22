@@ -18,7 +18,6 @@ depends:
   "core" {test}
   "core_bench" {test}
   "qcheck" {test}
-  "bitrel" {test}
 ]
 depopts: []
 build:

@@ -2,4 +2,4 @@ true : bin_annot, safe_string, package(bits)
 
 <src> : include
 <src/*> : ppx(ocamlfind ocamllint/ppx_lint.native)
-<test/*> : package(core), package(core_bench), package(bitrel), package(qcheck), thread
+<test/*> : package(core), package(core_bench), package(qcheck), thread

@@ -26,5 +26,49 @@
    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   ---------------------------------------------------------------------------*)
 
-type bitrel
+module type UNIVERSE = sig
+  type t
+  val universe : t list
+  val compare : t -> t -> int
+end
 
+module type S = sig
+  type elt
+  type t
+  type rel = { src : elt; dst : elt}
+
+  val make : unit -> t
+  val of_list : rel list -> t
+  val to_list : t -> rel list
+  val of_list_by_src : (elt * elt list) list -> t
+  val to_list_by_src : t -> (elt * elt list) list
+  val get_destinations : t -> elt -> elt list
+  val copy : t -> t
+  val get_sources : t -> elt -> elt list
+  val add_relations : t -> rel list -> t
+  val del_relations : t -> rel list -> t
+  val add_relations_inplace : t -> rel list -> unit
+  val del_relations_inplace : t -> rel list -> unit
+  val make_transitive_closure_inplace : t -> unit
+  val make_reflexive_inplace : t -> unit
+  val make_symmetric_inplace : t -> unit
+  val make_transitive_closure : t -> t
+  val make_reflexive : t -> t
+  val make_symmetric : t -> t
+
+(*
+  val is_reflexive : t -> bool
+  val is_symmetric : t -> bool
+  val is_transitive : t -> bool
+
+  val map : ( rel -> rel ) -> t -> t
+  val map_for_sources_of : elt -> (src:elt -> elt) -> t -> t
+  val map_for_destinations_of : elt -> (dst:elt -> elt) -> t -> t
+  *)
+
+  val iter : (rel -> unit) -> t -> unit
+  val clear : t -> unit
+
+end
+
+module Make (U : UNIVERSE) : (S with type elt = U.t)
