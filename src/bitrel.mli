@@ -49,23 +49,18 @@ module type S = sig
   val del_relations : t -> rel list -> t
   val add_relations_inplace : t -> rel list -> unit
   val del_relations_inplace : t -> rel list -> unit
-  val make_transitive_closure_inplace : t -> unit
+  val make_transitive_inplace : t -> unit
   val make_reflexive_inplace : t -> unit
-  val make_symmetric_inplace : t -> unit
-  val make_transitive_closure : t -> t
+  val make_symmetrical_inplace : t -> unit
+  val make_transitive : t -> t
   val make_reflexive : t -> t
-  val make_symmetric : t -> t
-
-(*
-  val is_reflexive : t -> bool
-  val is_symmetric : t -> bool
-  val is_transitive : t -> bool
-
+  val make_symmetrical : t -> t
   val map : ( rel -> rel ) -> t -> t
   val map_for_sources_of : elt -> (src:elt -> elt) -> t -> t
   val map_for_destinations_of : elt -> (dst:elt -> elt) -> t -> t
-  *)
-
+  val is_reflexive : t -> bool
+  val is_symmetrical : t -> bool
+  val is_transitive : t -> bool
   val iter : (rel -> unit) -> t -> unit
   val clear : t -> unit
 

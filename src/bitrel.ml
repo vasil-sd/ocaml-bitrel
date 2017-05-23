@@ -43,23 +43,18 @@ module type S = sig
   val del_relations : t -> rel list -> t
   val add_relations_inplace : t -> rel list -> unit
   val del_relations_inplace : t -> rel list -> unit
-  val make_transitive_closure_inplace : t -> unit
+  val make_transitive_inplace : t -> unit
   val make_reflexive_inplace : t -> unit
-  val make_symmetric_inplace : t -> unit
-  val make_transitive_closure : t -> t
+  val make_symmetrical_inplace : t -> unit
+  val make_transitive : t -> t
   val make_reflexive : t -> t
-  val make_symmetric : t -> t
-
-(*
-  val is_reflexive : t -> bool
-  val is_symmetric : t -> bool
-  val is_transitive : t -> bool
-
+  val make_symmetrical : t -> t
   val map : ( rel -> rel ) -> t -> t
   val map_for_sources_of : elt -> (src:elt -> elt) -> t -> t
   val map_for_destinations_of: elt -> (dst:elt -> elt) -> t -> t
-*)
-
+  val is_reflexive : t -> bool
+  val is_symmetrical : t -> bool
+  val is_transitive : t -> bool
   val iter : (rel -> unit) -> t -> unit
   val clear : t -> unit
 end
@@ -105,7 +100,7 @@ module Make (U : UNIVERSE) : (S with type elt = U.t) = struct
       rels;
     !rels_list
 
-  let make_transitive_closure_inplace r =
+  let make_transitive_inplace r =
     let or_all b = Bits.iteri_on_val (fun n -> ignore (Bits.lor_inplace b !(r.(n)))) b true in
     let rec close_aux orig b =
       or_all b;
@@ -114,7 +109,7 @@ module Make (U : UNIVERSE) : (S with type elt = U.t) = struct
     let close b = close_aux b (Bits.copy b) in
     Array.iter (fun b -> close !b) r
 
-  let make_symmetric_inplace r =
+  let make_symmetrical_inplace r =
     let set_dst_in_sources n_dst b =
       Bits.iteri_on_val (fun s -> Bits.set !(r.(s)) n_dst true) !b true in
     Array.iteri set_dst_in_sources r
@@ -159,19 +154,45 @@ module Make (U : UNIVERSE) : (S with type elt = U.t) = struct
   let add_relations r rels = with_copy_of r (fun nr -> add_relations_inplace nr rels)
   let del_relations r rels = with_copy_of r (fun nr -> del_relations_inplace nr rels)
 
-  let make_transitive_closure r = with_copy_of r make_transitive_closure_inplace
+  let make_transitive r = with_copy_of r make_transitive_inplace
   let make_reflexive r = with_copy_of r make_reflexive_inplace
-  let make_symmetric r = with_copy_of r make_symmetric_inplace
+  let make_symmetrical r = with_copy_of r make_symmetrical_inplace
 
-(*
-  val is_reflexive : t -> bool
-  val is_symmetric : t -> bool
-  val is_transitive : t -> bool
+  let map f r = of_list (List.map f (to_list r))
+  let map_for_sources_of d (f : src:elt -> elt) r =
+    List.map (fun src -> {src = f ~src; dst = d}) (get_sources r d)
+    |> add_relations r
+  let map_for_destinations_of s (f : dst:elt -> elt) r =
+    List.map (fun dst -> {src = s; dst = f ~dst}) (get_destinations r s)
+    |> add_relations r
 
-  val map : ( rel -> rel ) -> t -> t
-  val map_for_sources_of : elt -> (src:elt -> elt) -> t -> t
-  val map_for_destinations_of : elt -> (dst:elt -> elt) -> t -> t
-  *)
+  let is_reflexive r =
+    let result = ref true in
+    Array.iteri (fun n b -> if !result then result := !result && (Bits.get !b n)) r;
+    !result
+
+  let is_symmetrical r =
+    let result = ref true in
+    Array.iteri
+      (fun n b ->
+        Bits.iteri_on_val
+          (fun d ->
+            if !result then
+              result := !result && (Bits.get !(r.(d)) n))
+          !b
+          true)
+    r;
+    !result
+
+  let is_transitive r =
+    let result = ref true in
+    let or_all b = Bits.iteri_on_val (fun n -> ignore (Bits.lor_inplace b !(r.(n)))) b true in
+    let check b =
+      let copy_b = Bits.copy b in
+      or_all copy_b;
+      result := !result && Bits.(all_zeros (lxor_inplace copy_b b)) in
+    Array.iter (fun b -> if !result then check !b) r;
+    !result
 
   let iter f r =
     Array.iteri
